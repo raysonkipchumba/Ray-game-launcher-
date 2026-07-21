@@ -1,0 +1,6 @@
+{
+  "name": "Ray Game Launcher",
+  "description": "Production-ready, ultra-lightweight, 100% offline Android game launcher with performance booster, RAM cleaner, and Game Space UI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
