@@ -57,9 +57,9 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(DarkBackground)
-                        .windowInsetsPadding(WindowInsets.safeDrawing),
-                    containerColor = DarkBackground
+                        .background(DarkBackground),
+                    containerColor = DarkBackground,
+                    contentWindowInsets = WindowInsets.safeDrawing
                 ) { innerPadding ->
                     Box(
                         modifier = Modifier

@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,7 +90,6 @@ fun DynamicPerformanceIsland(
                     color = if (isExpanded) CyanAccent else Color(0xFF1E2F45),
                     shape = RoundedCornerShape(if (isExpanded) 20.dp else 24.dp)
                 )
-                .clickable { isExpanded = !isExpanded }
                 .animateContentSize(
                     animationSpec = spring(
                         dampingRatio = Spring.DampingRatioLowBouncy,
@@ -101,6 +101,7 @@ fun DynamicPerformanceIsland(
             if (!isExpanded) {
                 // Collapsed Dynamic Pill Mode
                 Row(
+                    modifier = Modifier.clickable { isExpanded = true },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -198,7 +199,8 @@ fun DynamicPerformanceIsland(
                 // Expanded Granular Performance Dashboard Mode
                 Column(
                     modifier = Modifier
-                        .width(460.dp)
+                        .fillMaxWidth(0.95f)
+                        .widthIn(max = 480.dp)
                         .padding(8.dp)
                 ) {
                     // Header Bar

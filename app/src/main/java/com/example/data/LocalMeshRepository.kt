@@ -1,9 +1,12 @@
 package com.example.data
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pManager
 import android.os.Build
+import androidx.core.content.ContextCompat
 import com.example.model.AppModel
 import com.example.model.GamerProfile
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +34,35 @@ class LocalMeshRepository(
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
     private val wifiP2pManager = context.getSystemService(Context.WIFI_P2P_SERVICE) as? WifiP2pManager
-    private val channel = wifiP2pManager?.initialize(context, context.mainLooper, null)
+    private val channel: WifiP2pManager.Channel? by lazy {
+        try {
+            if (hasNearbyWifiPermission()) {
+                wifiP2pManager?.initialize(context, context.mainLooper, null)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun hasNearbyWifiPermission(): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                val hasNearby = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.NEARBY_WIFI_DEVICES
+                ) == PackageManager.PERMISSION_GRANTED
+                if (hasNearby) return true
+            }
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     private val _discoveredPeers = MutableStateFlow<List<MeshPeer>>(emptyList())
     val discoveredPeers: StateFlow<List<MeshPeer>> = _discoveredPeers.asStateFlow()
@@ -66,8 +97,14 @@ class LocalMeshRepository(
     fun startP2pDiscovery() {
         _isMeshActive.value = true
 
+        if (!hasNearbyWifiPermission() || wifiP2pManager == null) {
+            _discoveredPeers.value = emptyList()
+            return
+        }
+
         try {
-            wifiP2pManager?.discoverPeers(channel, object : WifiP2pManager.ActionListener {
+            val ch = channel ?: return
+            wifiP2pManager.discoverPeers(ch, object : WifiP2pManager.ActionListener {
                 override fun onSuccess() {
                     fetchPeerList()
                 }
@@ -82,8 +119,14 @@ class LocalMeshRepository(
     }
 
     private fun fetchPeerList() {
+        if (!hasNearbyWifiPermission() || wifiP2pManager == null) {
+            _discoveredPeers.value = emptyList()
+            return
+        }
+
         try {
-            wifiP2pManager?.requestPeers(channel) { peerList ->
+            val ch = channel ?: return
+            wifiP2pManager.requestPeers(ch) { peerList ->
                 val deviceList = peerList.deviceList.toList()
                 if (deviceList.isNotEmpty()) {
                     val peers = deviceList.mapIndexed { index, device ->
